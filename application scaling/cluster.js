@@ -1,19 +1,36 @@
 const cluster = require("cluster");
-var http = require("http");
+var express = require('express');
 var numCpu = require("os").cpus().length;
+const app = express();
+
+// console.log(numCpu);
+
+app.get("/", (req, res) => {
+    for (let i = 0; i < 1e8; i++) {
+        //doing nothing
+    }
+    res.send(`Ok from ${process.pid}`);
+    // cluster.worker.kill();
+})
 
 if (cluster.isMaster) {
-    for (var i = 0; i < numCpu; i++){
+    for (var i = 0; i < numCpu; i++) {
         console.log("forking child");
-        cluster.fork();
+        cluster.fork();  //workers or child process
     }
-}else{
-    http.createServer((req,res)=>{
-        console.log(process.pid + "request from" + req.url);
-        res.writeHead(200);
-        res.end("Hello world");
-    }).listen(8000);
+    cluster.on('exit', (worker, code, signal) => {
+        console.log(`worker ${worker.process.pid} died`);
+        cluster.fork();
+    })
+} else {
+    app.listen(8000, () => {
+        console.log(`server ${process.pid} running @ http://localhost:8000 `);
+    })
 }
+
+// app.listen(8000, () => {
+//     console.log(`server ${process.pid} running @ http://localhost:8000 `);
+// })
 
 
 
