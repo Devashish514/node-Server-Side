@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>web socket client</title>
+    <script>
+        "use strict";
+        window.addEventListener("load",(event)=>{
+            let status = document.getElementById("status");
+            let open = document.getElementById("open");
+            let close = document.getElementById("close");
+            let send= document.getElementById("send");
+            let text = document.getElementById("text");
+            let message = document.getElementById("message");
+            var socket;
+
+            status.textContent = "not Connected";
+            close.disabled = true;
+            send.disabled = true;
+
+            //create a new connection when the connect button is clicked.
+            open.addEventListener("click",(event)=>{
+                open.disabled = true;
+                socket = new WebSocket("ws://localhost:8000");
+
+                socket.addEventListener("open",(event)=>{
+                    close.disabled = false;
+                    send.disabled = false;
+                    status.textContent = "connected";
+                });
+
+                //display message recieved from the server...
+                socket.addEventListener("message",(event)=>{
+                    message.textContent = "server says :" + event.data;
+                });
+                //display error if occured;
+                socket.addEventListener("error",(event)=>{
+                    message.textContent = "Error :" + event;
+                });
+                socket.addEventListener("close",(event)=>{
+                    open.disabled = false;
+                    status.textContent = "not connected";
+                });
+            });
+            // close the connection when disconnected is clicked;
+
+            close.addEventListener("click",(event)=>{
+                close.disabled = true;
+                send.disabled =  true;
+                message.textContent ="";
+                socket.close();
+            });
+
+            //send text to the server when the send buutton is clicked;
+            send.addEventListener("click",(event)=>{
+                socket.send(text.value);
+                text.value = "";
+            });
+        });
+    </script>
+</head>
+<body>
+    Status : <span id = "status"></span><br />
+    <input id="open" type="button" value="Connect" />&nbsp; 
+    <input id="close" type="button" value="Disconnect" /><br />
+    <input id="send" type="button" value="Send" />
+    <input id="text" /><br />
+    <span id ="message"></span>
+</body>
+</html>
